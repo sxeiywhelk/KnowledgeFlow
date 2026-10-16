@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>KnowledgeFlow</title>
+<style>
+:root{--bg:#080f1e;--panel:#101c30;--panel2:#14233a;--text:#eaf3ff;--muted:#91a7c6;--cyan:#55e6f2;--line:#31516e;--accent:#9a8cff;--green:#78f0bd}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px system-ui,-apple-system,sans-serif;overflow:hidden}
+header{height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;background:#0c1728;border-bottom:1px solid #20334e;gap:8px}
+.brand{font-weight:800;letter-spacing:.3px;font-size:17px}.brand span{color:var(--cyan)}.top-actions{display:flex;gap:6px}
+button{background:#172943;color:var(--text);border:1px solid #2c496a;border-radius:10px;padding:9px 11px;font-weight:650;cursor:pointer}
+button.primary{background:linear-gradient(135deg,#4bcedc,#7b8cff);color:#071321;border:0}
+button.small{padding:6px 9px;font-size:12px}
+main{height:calc(100dvh - 60px);display:grid;grid-template-columns:1fr 310px;min-height:0}
+#stage{position:relative;overflow:hidden;touch-action:none;background-color:#091426;background-image:radial-gradient(#28405a 1px,transparent 1px);background-size:22px 22px}
+#graph{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+.hud{position:absolute;left:12px;top:12px;display:flex;gap:6px;flex-wrap:wrap;max-width:85%}.pill{padding:7px 10px;border:1px solid #29435e;border-radius:999px;background:#0d1b2dd9;color:#c8d8ef;font-size:12px}
+.hint{position:absolute;bottom:12px;left:12px;right:12px;color:#9bb0ca;font-size:11px;text-align:center;pointer-events:none}
+aside{background:var(--panel);border-left:1px solid #243a57;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:12px}
+.panel-title{font-size:16px;font-weight:800}.muted{color:var(--muted);font-size:12px;line-height:1.5}
+.statgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.stat{background:#14243a;border:1px solid #29415d;border-radius:12px;padding:10px}.stat b{font-size:20px;display:block;color:var(--cyan)}
+.nodehead{display:flex;align-items:center;gap:10px}.bigicon{font-size:30px;width:54px;height:54px;display:grid;place-items:center;border-radius:15px;background:#1a3150}
+h3{margin:0 0 4px;font-size:16px}.section{border-top:1px solid #243a57;padding-top:12px}.field{display:flex;flex-direction:column;gap:5px;margin:8px 0}.field label{font-size:11px;color:var(--muted)}input,textarea,select{width:100%;border:1px solid #2c496a;background:#0a1627;color:var(--text);border-radius:9px;padding:9px;font:inherit}textarea{min-height:75px;resize:vertical}
+.actions{display:flex;gap:6px;flex-wrap:wrap}.actions button{flex:1}
+.imagebox{width:100%;height:130px;object-fit:cover;border-radius:12px;background:#0a1525;border:1px solid #29415d}.emptyimg{height:95px;border:1px dashed #34506c;border-radius:12px;display:grid;place-items:center;color:var(--muted);text-align:center;padding:10px}
+.codexlist{display:flex;flex-direction:column;gap:6px}.codexitem{display:flex;align-items:center;gap:8px;padding:7px;border-radius:8px;background:#13243a;font-size:12px}
+.mobilebar{display:none}
+@media(max-width:760px){main{grid-template-columns:1fr;height:calc(100dvh - 60px)}aside{position:absolute;z-index:5;right:0;top:60px;bottom:0;width:min(88vw,340px);box-shadow:-12px 0 30px #0008;transform:translateX(102%);transition:transform .22s ease}aside.open{transform:translateX(0)}.mobilebar{display:block}header{padding:0 10px}.brand{font-size:15px}.top-actions button{padding:8px;font-size:12px}.hint{bottom:10px}}
+</style>
+</head>
+<body>
+<header><div class="brand">✦ Knowledge<span>Flow</span></div><div class="top-actions"><button id="addBtn">＋ เพิ่มโหนด</button><button id="flowBtn">⟳ จำลองการไหล</button><button id="panelBtn" class="mobilebar">ข้อมูล</button></div></header>
+<main><section id="stage"><canvas id="graph"></canvas><div class="hud"><span class="pill" id="zoomPill">ซูม 100%</span><span class="pill" id="countPill">4 โหนด · 3 เส้น</span><span class="pill">ลากโหนดเพื่อผสมความรู้</span></div><div class="hint">ลากพื้นหลังเพื่อเลื่อน • ใช้สองนิ้ว/ปุ่ม + − เพื่อซูม • แตะโหนดเพื่อดูรายละเอียด • ลากโหนดทับกันเพื่อผสม</div></section>
+<aside id="inspector">
+  <div class="panel-title">ห้องแล็บความรู้ <span style="color:var(--cyan)">/ LAB</span></div>
+  <div class="statgrid"><div class="stat"><b id="unlocked">4</b><span class="muted">ปลดล็อกแล้ว</span></div><div class="stat"><b id="recipesCount">2</b><span class="muted">สูตรผสม</span></div></div>
+  <div class="section" id="detail"><div class="muted">เลือกโหนดบนพื้นที่ทำงานเพื่อดูข้อมูล หรือเพิ่มโหนดใหม่</div></div>
+  <div class="section"><div class="panel-title" style="font-size:14px">Codex · ความรู้ที่ค้นพบ</div><div id="codex" class="codexlist"></div></div>
+  <div class="section"><div class="panel-title" style="font-size:14px">สูตรผสมตัวอย่าง</div><div class="muted">อะตอม + อะตอม → โมเลกุล<br>เซลล์ + เซลล์ → เนื้อเยื่อ</div></div>
+  <div class="actions"><button id="exportBtn">ส่งออก JSON</button><button id="importBtn">นำเข้า JSON</button><button id="resetBtn">รีเซ็ต</button></div>
+  <input type="file" id="importFile" accept=".json,application/json" hidden>
+</aside></main>
+<script>
+const $=id=>document.getElementById(id);
+const canvas=$('graph'),ctx=canvas.getContext('2d'),stage=$('stage'),inspector=$('inspector');
+let dpr=window.devicePixelRatio||1, W=0,H=0,scale=1,offX=0,offY=0,selected=null,drag=null,pan=null,lastTap=0,flowMode=true;
+const palette={cyan:'#55e6f2',purple:'#9a8cff',green:'#78f0bd',orange:'#ffb86b'};
+let data={version:1,nodes:[
+{id:'atom1',label:'อะตอม',kind:'molecule',icon:'⚛️',x:100,y:130,description:'หน่วยพื้นฐานของสสาร ประกอบด้วยนิวเคลียสและอิเล็กตรอน เมื่ออะตอมเชื่อมพันธะกันอาจเกิดเป็นโมเลกุล',image:'',references:['https://www.britannica.com/science/atom'],unlocked:true},
+{id:'atom2',label:'อะตอม',kind:'molecule',icon:'⚛️',x:300,y:130,description:'อะตอมอีกหนึ่งหน่วย ใช้ทดลองสูตรการรวมอะตอมเป็นโมเลกุล',image:'',references:[],unlocked:true},
+{id:'cell',label:'เซลล์',kind:'cell',icon:'🧫',x:180,y:340,description:'หน่วยโครงสร้างและหน้าที่พื้นฐานของสิ่งมีชีวิต เซลล์หลายชนิดมีรูปร่างและหน้าที่เฉพาะ',image:'',references:['https://www.britannica.com/science/cell-biology'],unlocked:true},
+{id:'heart',label:'หัวใจ',kind:'organ',icon:'🫀',x:420,y:320,description:'หัวใจสูบฉีดเลือดไปยังปอดและส่วนต่าง ๆ ของร่างกาย เลือดนำออกซิเจนและสารอาหารไปเลี้ยงเซลล์',image:'',references:['https://www.nhlbi.nih.gov/health/heart'],unlocked:true},
+{id:'kidney',label:'ไต',kind:'organ',icon:'🫘',x:610,y:320,description:'ไตกรองของเสียและน้ำส่วนเกินจากเลือด ช่วยควบคุมสมดุลน้ำ เกลือแร่ และความดันโลหิต',image:'',references:['https://www.niddk.nih.gov/health-information/kidney-disease/kidneys-how-they-work'],unlocked:true}
+],edges:[
+{id:'e1',source:'heart',target:'kidney',label:'เลือดไปเลี้ยงไต',color:'#55e6f2',speed:1.3,direction:'forward',animated:true},
+{id:'e2',source:'cell',target:'heart',label:'เซลล์กล้ามเนื้อหัวใจ',color:'#9a8cff',speed:.8,direction:'forward',animated:true},
+{id:'e3',source:'atom1',target:'cell',label:'ระดับโครงสร้าง',color:'#78f0bd',speed:.6,direction:'forward',animated:false}
+],recipes:[
+{inputs:['อะตอม','อะตอม'],output:{label:'โมเลกุล',kind:'molecule',icon:'🧬',description:'โมเลกุลเกิดจากอะตอมตั้งแต่สองอะตอมขึ้นไปที่ยึดกันด้วยพันธะเคมี'}},
+{inputs:['เซลล์','เซลล์'],output:{label:'เนื้อเยื่อ',kind:'tissue',icon:'🧩',description:'เนื้อเยื่อคือกลุ่มเซลล์ที่ทำงานร่วมกันเพื่อหน้าที่เฉพาะ'}}
+]};
+let anim=0;
+function resize(){const r=stage.getBoundingClientRect();W=r.width;H=r.height;dpr=window.devicePixelRatio||1;canvas.width=W*dpr;canvas.height=H*dpr;canvas.style.width=W+'px';canvas.style.height=H+'px';ctx.setTransform(dpr,0,0,dpr,0,0);draw()}
+window.addEventListener('resize',resize);
+function screen(p){return{x:p.x*scale+offX,y:p.y*scale+offY}}
+function world(p){return{x:(p.x-offX)/scale,y:(p.y-offY)/scale}}
+function nodeAt(p){const q=world(p);return [...data.nodes].reverse().find(n=>Math.abs(q.x-n.x)<67&&Math.abs(q.y-n.y)<38)}
+function draw(){
+ if(!W||!H)return;ctx.clearRect(0,0,W,H);
+ // edges
+ for(const e of data.edges){const a=data.nodes.find(n=>n.id===e.source),b=data.nodes.find(n=>n.id===e.target);if(!a||!b)continue;const A=screen(a),B=screen(b);const dx=B.x-A.x,dy=B.y-A.y,len=Math.hypot(dx,dy)||1,ux=dx/len,uy=dy/len;
+ ctx.save();ctx.strokeStyle=e.color||palette.cyan;ctx.globalAlpha=.65;ctx.lineWidth=1.8;ctx.beginPath();ctx.moveTo(A.x+ux*60*scale,A.y+uy*30*scale);ctx.lineTo(B.x-ux*60*scale,B.y-uy*30*scale);ctx.stroke();
+ const mx=(A.x+B.x)/2,my=(A.y+B.y)/2;ctx.globalAlpha=.8;ctx.font='11px system-ui';ctx.fillStyle='#a9c6df';if(e.label)ctx.fillText(e.label,mx+5,my-8);
+ if(e.animated&&flowMode){const t=(anim*e.speed/120)%1;const px=A.x+(B.x-A.x)*t,py=A.y+(B.y-A.y)*t;ctx.globalAlpha=1;ctx.shadowColor=e.color;ctx.shadowBlur=12;ctx.fillStyle=e.color;ctx.beginPath();ctx.arc(px,py,3.4,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;ctx.beginPath();ctx.arc(A.x+(B.x-A.x)*((t+.18)%1),A.y+(B.y-A.y)*((t+.18)%1),1.8,0,Math.PI*2);ctx.fill()}ctx.restore();}
+ // nodes
+ for(const n of data.nodes){const p=screen(n),w=132*scale,h=72*scale;ctx.save();ctx.shadowColor=n.id===selected?'#55e6f2':'#0008';ctx.shadowBlur=n.id===selected?18:8;const g=ctx.createLinearGradient(p.x-w/2,p.y-h/2,p.x+w/2,p.y+h/2);g.addColorStop(0,'#18304a');g.addColorStop(1,'#101d31');ctx.fillStyle=g;roundRect(ctx,p.x-w/2,p.y-h/2,w,h,13*scale);ctx.fill();ctx.shadowBlur=0;ctx.strokeStyle=n.id===selected?'#55e6f2':'#355675';ctx.lineWidth=n.id===selected?2:1;ctx.stroke();ctx.font=`${23*scale}px system-ui`;ctx.textAlign='center';ctx.fillStyle='#fff';ctx.fillText(n.icon||'✦',p.x,p.y-4*scale);ctx.font=`600 ${12*scale}px system-ui`;ctx.fillStyle='#eaf3ff';ctx.fillText(n.label,p.x,p.y+22*scale);ctx.restore();}
+ requestAnimationFrame(()=>{anim++;draw()});
+}
+function roundRect(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
+let drawing=false;function pos(ev){const r=canvas.getBoundingClientRect();return{x:ev.clientX-r.left,y:ev.clientY-r.top}}
+canvas.addEventListener('pointerdown',e=>{canvas.setPointerCapture(e.pointerId);const p=pos(e),n=nodeAt(p);if(n){selected=n.id;drag={id:n.id,start:p,orig:{x:n.x,y:n.y},moved:false};renderInspector();}else{pan={start:p,ox:offX,oy:offY};}drawing=true;});
+canvas.addEventListener('pointermove',e=>{if(!drawing)return;const p=pos(e);if(drag){const n=data.nodes.find(x=>x.id===drag.id);if(n){const dx=(p.x-drag.start.x)/scale,dy=(p.y-drag.start.y)/scale;if(Math.abs(dx)+Math.abs(dy)>3)drag.moved=true;n.x=drag.orig.x+dx;n.y=drag.orig.y+dy;}}else if(pan){offX=pan.ox+p.x-pan.start.x;offY=pan.oy+p.y-pan.start.y;}});
+canvas.addEventListener('pointerup',e=>{drawing=false;if(drag){const p=pos(e),target=nodeAt(p),source=data.nodes.find(n=>n.id===drag.id);if(target&&source&&target.id!==source.id&&drag.moved){tryMerge(source,target)}else if(!drag.moved){renderInspector();if(innerWidth<=760)inspector.classList.add('open')}drag=null;}pan=null;updateStats();});
+canvas.addEventListener('wheel',e=>{e.preventDefault();const p=pos(e),before=world(p);scale=Math.max(.45,Math.min(1.8,scale*(e.deltaY<0?1.08:.92)));offX=p.x-before.x*scale;offY=p.y-before.y*scale;$('zoomPill').textContent='ซูม '+Math.round(scale*100)+'%';},{passive:false});
+function tryMerge(a,b){const key=[a.label.toLowerCase(),b.label.toLowerCase()].sort().join('|');const recipe=data.recipes.find(r=>[...r.inputs].map(x=>x.toLowerCase()).sort().join('|')===key);if(!recipe){toast('ยังไม่มีสูตรผสมสำหรับ '+a.label+' + '+b.label);return}
+ const out=recipe.output;let n=data.nodes.find(x=>x.label===out.label);if(!n){n={id:'n'+Date.now(),label:out.label,kind:out.kind,icon:out.icon,x:(a.x+b.x)/2,y:(a.y+b.y)/2,description:out.description,image:'',references:[],unlocked:true};data.nodes.push(n)}
+ data.edges.push({id:'e'+Date.now(),source:a.id,target:n.id,label:'สร้างจากการผสม',color:'#78f0bd',speed:1,direction:'forward',animated:true},{id:'e'+(Date.now()+1),source:b.id,target:n.id,label:'สร้างจากการผสม',color:'#78f0bd',speed:1,direction:'forward',animated:true});selected=n.id;toast('✨ ค้นพบความรู้ใหม่: '+out.label);renderInspector();updateStats();renderCodex();}
+function toast(msg){let el=document.createElement('div');el.textContent=msg;el.style.cssText='position:absolute;left:50%;top:70px;transform:translateX(-50%);z-index:10;background:#1b3850;border:1px solid #55e6f2;border-radius:12px;padding:11px 15px;box-shadow:0 8px 30px #0008;max-width:90%;text-align:center';stage.appendChild(el);setTimeout(()=>el.remove(),2400)}
+function renderInspector(){const n=data.nodes.find(x=>x.id===selected);if(!n){$('detail').innerHTML='<div class="muted">เลือกโหนดบนพื้นที่ทำงานเพื่อดูข้อมูล หรือเพิ่มโหนดใหม่</div>';return}
+ $('detail').innerHTML=`<div class="nodehead"><div class="bigicon">${esc(n.icon||'✦')}</div><div><h3>${esc(n.label)}</h3><div class="muted">${esc(n.kind||'concept')} · ${n.unlocked?'ปลดล็อกแล้ว':'ยังไม่ปลดล็อก'}</div></div></div>
+ ${n.image?`<img class="imagebox" src="${esc(n.image)}" alt="ภาพประกอบ" onerror="this.style.display='none'">`:'<div class="emptyimg">🖼️ ยังไม่มีรูปภาพ<br><small>เพิ่ม URL รูปภาพในช่องแก้ไขด้านล่าง</small></div>'}
+ <div class="muted" style="margin-top:8px">${esc(n.description||'ยังไม่มีคำอธิบาย')}</div>
+ <div class="muted" style="margin-top:8px">${(n.references||[]).map(u=>`<div>↗ <a style="color:#55e6f2" href="${esc(u)}" target="_blank">${esc(u)}</a></div>`).join('')||'ไม่มีแหล่งอ้างอิง'}</div>
+ <div class="section"><div class="panel-title" style="font-size:14px">แก้ไขข้อมูล</div>
+ <div class="field"><label>ชื่อโหนด</label><input id="editLabel" value="${attr(n.label)}"></div>
+ <div class="field"><label>ไอคอน (emoji)</label><input id="editIcon" value="${attr(n.icon||'✦')}"></div>
+ <div class="field"><label>คำอธิบาย</label><textarea id="editDesc">${esc(n.description||'')}</textarea></div>
+ <div class="field"><label>URL รูปภาพ (ถ้ามี)</label><input id="editImage" value="${attr(n.image||'')}" placeholder="https://..."></div>
+ <div class="field"><label>แหล่งอ้างอิง URL (คั่นด้วยบรรทัดใหม่)</label><textarea id="editRefs">${esc((n.references||[]).join('\\n'))}</textarea></div>
+ <div class="actions"><button class="primary" id="saveNode">บันทึก</button><button id="deleteNode">ลบโหนด</button></div></div>`;
+ $('saveNode').onclick=()=>{n.label=$('editLabel').value.trim()||n.label;n.icon=$('editIcon').value.trim()||'✦';n.description=$('editDesc').value;n.image=$('editImage').value.trim();n.references=$('editRefs').value.split('\\n').map(s=>s.trim()).filter(Boolean);renderInspector();renderCodex();updateStats();toast('บันทึกข้อมูลแล้ว')};
+ $('deleteNode').onclick=()=>{data.nodes=data.nodes.filter(x=>x.id!==n.id);data.edges=data.edges.filter(e=>e.source!==n.id&&e.target!==n.id);selected=null;renderInspector();renderCodex();updateStats();toast('ลบโหนดแล้ว')};
+}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function attr(s){return esc(s).replace(/`/g,'&#96;')}
+function updateStats(){$('countPill').textContent=data.nodes.length+' โหนด · '+data.edges.length+' เส้น';$('unlocked').textContent=data.nodes.filter(n=>n.unlocked).length;$('recipesCount').textContent=data.recipes.length}
+function renderCodex(){$('codex').innerHTML=data.nodes.filter(n=>n.unlocked).map(n=>`<div class="codexitem"><span style="font-size:20px">${esc(n.icon||'✦')}</span><span>${esc(n.label)}</span><span style="margin-left:auto;color:#78f0bd">✓</span></div>`).join('')}
+function addNode(){const label=prompt('ชื่อโหนดใหม่คืออะไร?','ไมโทคอนเดรีย');if(!label)return;const n={id:'n'+Date.now(),label:label.trim(),kind:'concept',icon:'🔬',x:(W/2-offX)/scale,y:(H/2-offY)/scale,description:'เพิ่มคำอธิบายของความรู้นี้ได้ในแผงข้อมูล',image:'',references:[],unlocked:true};data.nodes.push(n);selected=n.id;renderInspector();renderCodex();updateStats();if(innerWidth<=760)inspector.classList.add('open')}
+$('addBtn').onclick=addNode;$('panelBtn').onclick=()=>inspector.classList.toggle('open');
+$('flowBtn').onclick=()=>{flowMode=!flowMode;$('flowBtn').textContent=flowMode?'⟳ จำลองการไหล':'▶ เปิดการไหล';toast(flowMode?'เปิดอนิเมชันการไหล':'หยุดอนิเมชันการไหล')};
+$('exportBtn').onclick=()=>{const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='knowledgeflow-data.json';a.click();URL.revokeObjectURL(a.href)};
+$('importBtn').onclick=()=>$('importFile').click();$('importFile').onchange=async e=>{try{const f=e.target.files[0];if(!f)return;const x=JSON.parse(await f.text());if(!Array.isArray(x.nodes)||!Array.isArray(x.edges)||!Array.isArray(x.recipes))throw Error('โครงสร้าง JSON ไม่ถูกต้อง');data=x;selected=null;renderInspector();renderCodex();updateStats();toast('นำเข้าข้อมูลสำเร็จ')}catch(err){alert('นำเข้าไม่สำเร็จ: '+err.message)}};
+$('resetBtn').onclick=()=>{if(confirm('รีเซ็ตข้อมูลตัวอย่าง? ข้อมูลที่แก้ไขจะหายไปเมื่อรีโหลด'))location.reload()};
+window.addEventListener('keydown',e=>{if(e.key==='Escape')inspector.classList.remove('open')});
+renderCodex();updateStats();resize();
+</script></body></html>

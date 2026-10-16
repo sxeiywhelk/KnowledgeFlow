@@ -1,0 +1,167 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.org/knowledgeflow.schema.json",
+  "title": "KnowledgeFlow graph data",
+  "type": "object",
+  "required": [
+    "version",
+    "nodes",
+    "edges",
+    "recipes"
+  ],
+  "properties": {
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "kind",
+          "x",
+          "y",
+          "description"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "concept",
+              "process",
+              "organ",
+              "cell",
+              "molecule",
+              "tissue"
+            ]
+          },
+          "icon": {
+            "type": "string"
+          },
+          "x": {
+            "type": "number"
+          },
+          "y": {
+            "type": "number"
+          },
+          "description": {
+            "type": "string"
+          },
+          "image": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "references": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uri"
+            }
+          },
+          "unlocked": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "source",
+          "target"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "target": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "color": {
+            "type": "string"
+          },
+          "speed": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 5
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "forward",
+              "reverse"
+            ]
+          },
+          "animated": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "recipes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "inputs",
+          "output"
+        ],
+        "properties": {
+          "inputs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "output": {
+            "type": "object",
+            "required": [
+              "label",
+              "kind",
+              "icon",
+              "description"
+            ],
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "kind": {
+                "type": "string"
+              },
+              "icon": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
